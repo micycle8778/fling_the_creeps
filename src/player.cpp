@@ -36,7 +36,7 @@ std::vector<raylib::Vector2> create_player_shape(int points) {
     return result;
 }
 
-Player::Player() : player_collider(this, create_player_shape(10)) {
+Player::Player() : player_collider(this, create_player_shape(7)) {
     colliders.push_back(player_collider);
 }
 
@@ -85,7 +85,7 @@ void Player::update() {
 }
 
 void Player::draw() {
-    std::vector<raylib::Vector2> points = create_player_shape(50);
+    std::vector<raylib::Vector2> points = create_player_shape(7);
     
     points.insert(std::begin(points), raylib::Vector2());
     points.push_back(points[1]);

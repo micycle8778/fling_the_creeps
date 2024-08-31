@@ -30,9 +30,18 @@ void World::update() {
     camera.rotation = 0.0;
 
     BeginDrawing();
-        ClearBackground(WHITE);
+        ClearBackground(BLACK);
 
         camera.BeginMode();
+
+            // background
+            DrawRectangle(
+                -SCREEN_WIDTH / 2.,
+                -SCREEN_HEIGHT / 2.,
+                SCREEN_WIDTH,
+                SCREEN_HEIGHT,
+                WHITE
+            );
 
             for (auto e : entities) {
                 e->draw();
