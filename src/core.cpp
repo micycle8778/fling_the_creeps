@@ -9,7 +9,7 @@
 #include "core.hpp"
 #include "physics.hpp"
 
-// #define DRAW_COLLIDERS
+#define DRAW_COLLIDERS
 
 using namespace game;
 using namespace core;
@@ -48,15 +48,10 @@ void World::update() {
 
 #ifdef DRAW_COLLIDERS
                 for (auto c : e->colliders) {
-                    auto points = c.points;
-                    points.insert(std::begin(points), raylib::Vector2());
-                    points.push_back(points[1]);
+                    auto points = c.get_transformed_points();
 
-                    for (auto& p : points) {
-                        p = p.Rotate(e->rotation);
-                        p += e->position;
-                        p += c.offset;
-                    }
+                    points.insert(std::begin(points), e->position + c.offset.Rotate(e->rotation));
+                    points.push_back(points[1]);
 
                     DrawTriangleFan(points.data(), points.size(), c.debug_color);
                 }

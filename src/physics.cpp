@@ -34,21 +34,8 @@ raylib::Vector2 Collider::collide_with_screen() {
 }
 
 bool Collider::collides_with(Collider& other) {
-    auto our_points = points;
-    auto other_points = other.points;
-
-    // Apply transforms
-    for (auto& p : our_points) {
-        p = p.Rotate(parent->rotation);
-        p += parent->position;
-        p += offset;
-    }
-
-    for (auto& p : other_points) {
-        p = p.Rotate(other.parent->rotation);
-        p += other.parent->position;
-        p += other.offset;
-    }
+    auto our_points = get_transformed_points();
+    auto other_points = other.get_transformed_points();
 
     // Do collision check or whatever
     for (auto container : {our_points, other_points}) {
@@ -85,4 +72,16 @@ bool Collider::collides_with(Collider& other) {
     }
 
     return true;
+}
+
+std::vector<raylib::Vector2> Collider::get_transformed_points() {
+    auto result = points;
+
+    for (auto& p : result) {
+        p += offset;
+        p = p.Rotate(parent->rotation);
+        p += parent->position;
+    }
+
+    return result;
 }
