@@ -1,6 +1,7 @@
 #include <iostream>
 #include <algorithm>
 
+#include "Color.hpp"
 #include "Vector2.hpp"
 #include "player.hpp"
 #include "physics.hpp"
@@ -40,7 +41,7 @@ Player::Player() : player_collider(this, create_player_shape(7)) {
     colliders.push_back(player_collider);
 }
 
-void Player::update() {
+void Player::update(core::World& _world) {
     raylib::Vector2 input;
 
     if (IsKeyDown(KEY_A)) {
@@ -84,7 +85,9 @@ void Player::update() {
     }
 }
 
-void Player::draw() {
+void Player::draw(core::World& world) {
+    auto& enemy = world.get_entities()[1];
+
     std::vector<raylib::Vector2> points = create_player_shape(7);
     
     points.insert(std::begin(points), raylib::Vector2());
@@ -95,5 +98,10 @@ void Player::draw() {
         point += position;
     }
 
-    DrawTriangleFan(points.data(), points.size(), BLACK);
+    auto color = raylib::Color(25, 25, 100);
+    if (player_collider.collides_with(enemy->colliders[0])) {
+        color = RED;
+    }
+
+    DrawTriangleFan(points.data(), points.size(), color);
 }

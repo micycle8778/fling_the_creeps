@@ -8,8 +8,8 @@ namespace game::player {
         
         public:
             Player();
-            void update();
-            void draw();
+            void update(core::World& world);
+            void draw(core::World& world);
     };
 }
 

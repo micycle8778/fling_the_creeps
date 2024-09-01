@@ -14,13 +14,13 @@
 using namespace game;
 using namespace core;
 
-void World::add_entity(std::shared_ptr<Entity> entity) {
-    entities.push_back(entity);
+void World::add_entity(std::unique_ptr<Entity> entity) {
+    entities.push_back(std::move(entity));
 }
 
 void World::update() {
-    for (auto e : entities) {
-        e->update();
+    for (auto& e : entities) {
+        e->update(*this);
     }
 
     auto camera = raylib::Camera2D();
@@ -43,8 +43,8 @@ void World::update() {
                 WHITE
             );
 
-            for (auto e : entities) {
-                e->draw();
+            for (auto& e : entities) {
+                e->draw(*this);
 
 #ifdef DRAW_COLLIDERS
                 for (auto c : e->colliders) {
@@ -65,4 +65,8 @@ void World::update() {
 
         camera.EndMode();
     EndDrawing();
+}
+
+std::vector<std::unique_ptr<Entity>>& World::get_entities() {
+    return entities;
 }

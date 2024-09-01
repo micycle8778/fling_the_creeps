@@ -2,7 +2,7 @@
 #include "Vector2.hpp"
 #include "core.hpp"
 #include <algorithm>
-#include <iostream>
+#include <cmath>
 #include <vector>
 
 using namespace game::physics;
@@ -31,4 +31,58 @@ raylib::Vector2 Collider::collide_with_screen() {
     }
 
     return result;
+}
+
+bool Collider::collides_with(Collider& other) {
+    auto our_points = points;
+    auto other_points = other.points;
+
+    // Apply transforms
+    for (auto& p : our_points) {
+        p = p.Rotate(parent->rotation);
+        p += parent->position;
+        p += offset;
+    }
+
+    for (auto& p : other_points) {
+        p = p.Rotate(other.parent->rotation);
+        p += other.parent->position;
+        p += other.offset;
+    }
+
+    // Do collision check or whatever
+    for (auto container : {our_points, other_points}) {
+        for (auto it = container.begin(); it != container.end(); it++) {
+            for (auto jt = it + 1; jt != container.end(); jt++) {
+                auto v = *it - *jt;
+                auto axis = raylib::Vector2(v.y, -v.x);
+
+                float our_left = INFINITY;
+                float our_right = -INFINITY;
+
+                float other_left = INFINITY;
+                float other_right = -INFINITY;
+
+                for (auto p : our_points) {
+                    auto dot = p.DotProduct(axis);
+
+                    our_left = std::min(our_left, dot);
+                    our_right = std::max(our_right, dot);
+                }
+
+                for (auto p : other_points) {
+                    auto dot = p.DotProduct(axis);
+
+                    other_left = std::min(other_left, dot);
+                    other_right = std::max(other_right, dot);
+                }
+
+                if (!(our_right >= other_left && other_right >= our_left)) {
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
 }

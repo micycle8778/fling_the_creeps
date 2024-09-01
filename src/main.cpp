@@ -4,6 +4,7 @@
 
 #include "core.hpp"
 #include "player.hpp"
+#include "enemy.hpp"
 #include "raylib.h"
 
 int main() {
@@ -16,8 +17,8 @@ int main() {
 
     game::core::World world;
 
-    auto ptr = std::static_pointer_cast<game::core::Entity>(std::make_shared<game::player::Player>());
-    world.add_entity(ptr);
+    world.add_entity(std::make_unique<game::player::Player>());
+    world.add_entity(std::make_unique<game::enemy::Enemy>());
 
     while (!window.ShouldClose()) {
         world.update();

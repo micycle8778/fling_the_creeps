@@ -14,23 +14,28 @@ namespace game {
     const float SCREEN_HEIGHT = 720;
 
     namespace core {
-        class Entity : public std::enable_shared_from_this<Entity> {
+        class World;
+
+        class Entity {
             public:
-                raylib::Vector2 position;
-                float rotation;
+                raylib::Vector2 position = raylib::Vector2();
+                float rotation = 0;
 
                 std::vector<physics::Collider> colliders;
 
-                virtual void update() = 0;
-                virtual void draw() = 0;
+                virtual void update(World& world) = 0;
+                virtual void draw(World& world) = 0;
         };
 
         class World {
-            std::vector<std::shared_ptr<Entity>> entities;
+            std::vector<std::unique_ptr<Entity>> entities;
+
+            std::vector<Entity*> to_be_freed;
 
             public:
-                void add_entity(std::shared_ptr<Entity> entity);
+                void add_entity(std::unique_ptr<Entity> entity);
                 void update();
+                std::vector<std::unique_ptr<Entity>>& get_entities();
         };
     }
 }
