@@ -7,6 +7,7 @@
 
 #include "raylib.h"
 #include <algorithm>
+#include <cstdlib>
 #include <memory>
 
 using namespace game::player;
@@ -110,7 +111,7 @@ void Player::_handle_hammer_collision(core::World& world) {
 
             if (hammer_collider.collides_with(enemy->body_collider)) {
                 hit_enemies[enemy.get()] = world.clock;
-                enemy->velocity += raylib::Vector2(-3000, 0).Rotate(rotation);
+                enemy->velocity += raylib::Vector2(-4000, 0).Rotate(rotation);
                 world.send_notification(core::ENEMY_FLUNG);
             }
         }
@@ -210,6 +211,28 @@ void Player::draw(core::World& world) {
         }
 
         DrawTriangleFan(points.data(), points.size(), color);
+    }
+
+    { // draw eyes
+        std::vector<raylib::Vector2> eyes({
+                raylib::Vector2(-6, -22),
+                raylib::Vector2(6, -22),
+        });
+
+        for (auto point : eyes) {
+            point = point.Rotate(rotation);
+            point += position;
+
+            DrawCircleV(point, 4, WHITE);
+        }
+
+        for (auto point : eyes) {
+            point += raylib::Vector2(0, -1);
+            point = point.Rotate(rotation);
+            point += position;
+
+            DrawCircleV(point, 2, BLACK);
+        }
     }
 
     { // draw hammer head

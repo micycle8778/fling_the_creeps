@@ -29,12 +29,29 @@ void Enemy::update(core::World& world) {
     rotation = (velocity * raylib::Vector2(1, -1)).Angle(raylib::Vector2(1, 0));
     position += velocity * GetFrameTime();
 
+
+    bool going_fast = velocity.Length() > DESIRED_SPEED * 2;
+
     for (auto e : world.get_entities()) {
         if (e.get() == this) continue;
 
         if (auto enemy = std::dynamic_pointer_cast<Enemy>(e)) {
             if (auto displacement = body_collider.collides_with(enemy->body_collider)) {
                 position += displacement.value();
+
+                bool other_going_fast = enemy->velocity.Length() > DESIRED_SPEED * 2;
+                
+                // TODO: Particles
+                if (going_fast && other_going_fast) continue;
+                if (other_going_fast) {
+                    world.destroy(this);
+                    break;
+                }
+
+                if (going_fast) {
+                    world.destroy(enemy.get());
+                }
+
             }
         }
     }
