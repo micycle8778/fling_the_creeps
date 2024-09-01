@@ -1,6 +1,7 @@
 #include "enemy.hpp"
-#include "Color.hpp"
 #include "Vector2.hpp"
+#include "player.hpp"
+#include "raylib.h"
 #include <cmath>
 
 using namespace game::enemy;
@@ -15,9 +16,19 @@ std::vector<raylib::Vector2> get_enemy_shape() {
 
 Enemy::Enemy() : body_collider(this, get_enemy_shape()) {}
 
-void Enemy::update(core::World& _world) {}
+void Enemy::update(core::World& world) {
+    const float DESIRED_SPEED = 300;
+    float lerp_speed = 0.01;
+    if (velocity.Length() < DESIRED_SPEED) {
+        lerp_speed = 0.05;
+    }
+    velocity = velocity.Lerp((world.player->position - position).Normalize() * DESIRED_SPEED, lerp_speed);
 
-void Enemy::draw(core::World& _world) {
+    rotation = (velocity * raylib::Vector2(1, -1)).Angle(raylib::Vector2(1, 0));
+    position += velocity * GetFrameTime();
+}
+
+void Enemy::draw(core::World& world) {
     { // draw body
         auto points = get_enemy_shape();
         points.insert(std::begin(points), raylib::Vector2());
@@ -33,7 +44,7 @@ void Enemy::draw(core::World& _world) {
 
     { // draw eyes
         auto eye_brightness = Fade(RED,
-            Remap(sin(_world.clock * 2 * PI), -1, 1, 0.2, 0.8)
+            Remap(sin(world.clock * 2 * PI), -1, 1, 0.2, 0.8)
         );
 
         std::vector<raylib::Vector2> eyes({

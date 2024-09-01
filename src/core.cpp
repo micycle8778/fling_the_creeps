@@ -3,22 +3,31 @@
 #include "raylib.h"
 #include <algorithm>
 #include <cmath>
-#include <iterator>
 #include <vector>
 #include <memory>
 #include "core.hpp"
-#include "physics.hpp"
+#include "player.hpp"
 
 // #define DRAW_COLLIDERS
+
+#ifdef DRAW_COLLIDERS
+#include <iterator>
+#include "physics.hpp"
+#endif
 
 using namespace game;
 using namespace core;
 
-void World::add_entity(std::unique_ptr<Entity> entity) {
+void World::add_entity(std::shared_ptr<Entity> entity) {
+    if (auto ptr = std::dynamic_pointer_cast<player::Player>(entity)) {
+        player = ptr;
+    }
     entities.push_back(std::move(entity));
 }
 
 void World::update() {
+    SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
+
     clock += GetFrameTime();
 
     for (auto& e : entities) {
@@ -64,6 +73,6 @@ void World::update() {
     EndDrawing();
 }
 
-std::vector<std::unique_ptr<Entity>>& World::get_entities() {
-    return entities;
+std::span<std::shared_ptr<Entity>> World::get_entities() {
+    return std::span<std::shared_ptr<Entity>>(entities);
 }

@@ -1,9 +1,14 @@
 #pragma once
 
 #include <memory>
+#include <span>
 #include <vector>
 
 #include "Vector2.hpp"
+
+namespace game::player {
+    class Player;
+}
 
 namespace game::physics {
     struct Collider;
@@ -28,15 +33,16 @@ namespace game {
         };
 
         class World {
-            std::vector<std::unique_ptr<Entity>> entities;
+            std::vector<std::shared_ptr<Entity>> entities;
             std::vector<Entity*> to_be_freed;
 
             public:
                 float clock = 0;
+                std::shared_ptr<player::Player> player;
 
-                void add_entity(std::unique_ptr<Entity> entity);
+                void add_entity(std::shared_ptr<Entity> entity);
                 void update();
-                std::vector<std::unique_ptr<Entity>>& get_entities();
+                std::span<std::shared_ptr<Entity>> get_entities();
         };
     }
 }

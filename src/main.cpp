@@ -13,11 +13,10 @@ int main() {
             FLAG_MSAA_4X_HINT | FLAG_WINDOW_RESIZABLE
     );
 
-    SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
 
     game::core::World world;
 
-    world.add_entity(std::make_unique<game::player::Player>());
+    world.add_entity(std::make_unique<game::player::Player>(world));
     world.add_entity(std::make_unique<game::enemy::Enemy>());
 
     while (!window.ShouldClose()) {

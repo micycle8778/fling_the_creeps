@@ -15,6 +15,9 @@ namespace game::physics {
 
         game::core::Entity* parent;
 
+        Collider(const Collider&) = delete;
+        Collider& operator=(const Collider&) = delete;
+
         public:
             Collider(game::core::Entity* parent, std::vector<raylib::Vector2> points);
             raylib::Vector2 collide_with_screen();
