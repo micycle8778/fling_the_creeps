@@ -21,7 +21,7 @@ namespace game {
                 raylib::Vector2 position = raylib::Vector2();
                 float rotation = 0;
 
-                std::vector<physics::Collider> colliders;
+                std::vector<physics::Collider*> colliders;
 
                 virtual void update(World& world) = 0;
                 virtual void draw(World& world) = 0;
@@ -29,10 +29,11 @@ namespace game {
 
         class World {
             std::vector<std::unique_ptr<Entity>> entities;
-
             std::vector<Entity*> to_be_freed;
 
             public:
+                float clock = 0;
+
                 void add_entity(std::unique_ptr<Entity> entity);
                 void update();
                 std::vector<std::unique_ptr<Entity>>& get_entities();

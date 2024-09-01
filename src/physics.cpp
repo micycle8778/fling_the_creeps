@@ -10,6 +10,8 @@ using namespace game::physics;
 Collider::Collider(game::core::Entity* parent, std::vector<raylib::Vector2> points) {
     this->parent = parent;
     this->points = points;
+
+    parent->colliders.push_back(this);
 }
 
 raylib::Vector2 Collider::collide_with_screen() {
