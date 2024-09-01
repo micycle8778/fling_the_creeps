@@ -14,7 +14,7 @@ Collider::Collider(game::core::Entity* parent, std::vector<raylib::Vector2> poin
     parent->colliders.push_back(this);
 }
 
-raylib::Vector2 Collider::collide_with_screen() {
+std::optional<raylib::Vector2> Collider::collide_with_screen() {
     raylib::Vector2 result;
 
     auto half_width = game::SCREEN_WIDTH / 2.;
@@ -32,48 +32,64 @@ raylib::Vector2 Collider::collide_with_screen() {
         result.y -= std::max(0.0, p.y - half_height); // bottom wall
     }
 
+    if (result == raylib::Vector2()) 
+        return {};
     return result;
 }
 
-bool Collider::collides_with(Collider& other) {
+std::optional<raylib::Vector2> Collider::collides_with(Collider& other) {
     auto our_points = get_transformed_points();
     auto other_points = other.get_transformed_points();
 
     // Do collision check or whatever
+
+    raylib::Vector2 displacement = INFINITY;
     for (auto container : {our_points, other_points}) {
         for (auto it = container.begin(); it != container.end(); it++) {
-            for (auto jt = it + 1; jt != container.end(); jt++) {
-                auto v = *it - *jt;
-                auto axis = raylib::Vector2(v.y, -v.x);
+            auto p1 = *it;
+            auto p2 = it != container.end() - 1 ? *(it + 1) : *container.begin();
 
-                float our_left = INFINITY;
-                float our_right = -INFINITY;
+            auto v = p1 - p2;
+            auto axis = raylib::Vector2(v.y, -v.x).Normalize();
 
-                float other_left = INFINITY;
-                float other_right = -INFINITY;
+            float our_left = INFINITY;
+            float our_right = -INFINITY;
 
-                for (auto p : our_points) {
-                    auto dot = p.DotProduct(axis);
+            float other_left = INFINITY;
+            float other_right = -INFINITY;
 
-                    our_left = std::min(our_left, dot);
-                    our_right = std::max(our_right, dot);
-                }
+            for (auto p : our_points) {
+                auto dot = p.DotProduct(axis);
 
-                for (auto p : other_points) {
-                    auto dot = p.DotProduct(axis);
+                our_left = std::min(our_left, dot);
+                our_right = std::max(our_right, dot);
+            }
 
-                    other_left = std::min(other_left, dot);
-                    other_right = std::max(other_right, dot);
-                }
+            for (auto p : other_points) {
+                auto dot = p.DotProduct(axis);
 
-                if (!(our_right >= other_left && other_right >= our_left)) {
-                    return false;
-                }
+                other_left = std::min(other_left, dot);
+                other_right = std::max(other_right, dot);
+            }
+
+            if (!(our_right >= other_left && other_right >= our_left)) {
+                return {};
+            }
+
+            raylib::Vector2 potential_displacement;
+            if (our_left < other_left) {
+                potential_displacement = axis * (other_left - our_right - 1);
+            } else {
+                potential_displacement = axis * (other_right - our_left - 1);
+            }
+
+            if (potential_displacement.Length() < displacement.Length()) {
+                displacement = potential_displacement;
             }
         }
     }
 
-    return true;
+    return displacement;
 }
 
 std::vector<raylib::Vector2> Collider::get_transformed_points() {

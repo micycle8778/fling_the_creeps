@@ -30,7 +30,8 @@ void World::update() {
 
     clock += GetFrameTime();
 
-    for (auto& e : entities) {
+    for (int idx = 0; idx < entities.size(); idx++) {
+        auto e = entities[idx];
         e->update(*this);
     }
 
@@ -75,4 +76,25 @@ void World::update() {
 
 std::span<std::shared_ptr<Entity>> World::get_entities() {
     return std::span<std::shared_ptr<Entity>>(entities);
+}
+
+void World::destroy(Entity* entity) {
+    // WARN: this could drop a frame
+    if (entities.back().get() == entity) {
+        entities.pop_back();
+    }
+
+    for (auto& e : entities) {
+        if (e.get() == entity) {
+            e = entities.back();
+            entities.pop_back();
+            return;
+        }
+    }
+}
+
+void World::send_notification(Notification notification) {
+    for (auto e : entities) {
+        e->recieve_notification(*this, notification);
+    }
 }

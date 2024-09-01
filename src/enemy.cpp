@@ -3,6 +3,7 @@
 #include "player.hpp"
 #include "raylib.h"
 #include <cmath>
+#include <memory>
 
 using namespace game::enemy;
 
@@ -22,10 +23,21 @@ void Enemy::update(core::World& world) {
     if (velocity.Length() < DESIRED_SPEED) {
         lerp_speed = 0.05;
     }
+    // TODO:
     velocity = velocity.Lerp((world.player->position - position).Normalize() * DESIRED_SPEED, lerp_speed);
 
     rotation = (velocity * raylib::Vector2(1, -1)).Angle(raylib::Vector2(1, 0));
     position += velocity * GetFrameTime();
+
+    for (auto e : world.get_entities()) {
+        if (e.get() == this) continue;
+
+        if (auto enemy = std::dynamic_pointer_cast<Enemy>(e)) {
+            if (auto displacement = body_collider.collides_with(enemy->body_collider)) {
+                position += displacement.value();
+            }
+        }
+    }
 }
 
 void Enemy::draw(core::World& world) {

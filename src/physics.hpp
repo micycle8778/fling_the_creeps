@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <vector>
 
 #include "Vector2.hpp"
@@ -20,8 +21,8 @@ namespace game::physics {
 
         public:
             Collider(game::core::Entity* parent, std::vector<raylib::Vector2> points);
-            raylib::Vector2 collide_with_screen();
-            bool collides_with(Collider& other);
+            std::optional<raylib::Vector2> collide_with_screen();
+            std::optional<raylib::Vector2> collides_with(Collider& other);
             std::vector<raylib::Vector2> get_transformed_points();
     };
 }

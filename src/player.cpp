@@ -1,6 +1,7 @@
 #include "Color.hpp"
 #include "Vector2.hpp"
 #include "player.hpp"
+#include "core.hpp"
 #include "physics.hpp"
 #include "enemy.hpp"
 
@@ -110,6 +111,7 @@ void Player::_handle_hammer_collision(core::World& world) {
             if (hammer_collider.collides_with(enemy->body_collider)) {
                 hit_enemies[enemy.get()] = world.clock;
                 enemy->velocity += raylib::Vector2(-3000, 0).Rotate(rotation);
+                world.send_notification(core::ENEMY_FLUNG);
             }
         }
     }
@@ -155,21 +157,27 @@ void Player::_handle_swing(core::World& world) {
 void Player::update(core::World& world) {
     _move_player();
     _handle_swing(world);
-    // check collision
+    
+    // check screen collision
     auto displacement = player_collider.collide_with_screen();
-    if (displacement != raylib::Vector2()) {
-        velocity = displacement.Normalize() * velocity.Length() * 0.8;
-        position += displacement;
+    if (displacement) {
+        velocity = displacement.value().Normalize() * velocity.Length() * 0.8;
+        position += displacement.value();
+    }
+
+    // check enemy collision
+    for (auto e : world.get_entities()) {
+        if (auto enemy = std::dynamic_pointer_cast<enemy::Enemy>(e)) {
+            if (player_collider.collides_with(enemy->body_collider)) {
+                world.send_notification(core::PLAYER_DIED);
+                return;
+            }
+        }
     }
 }
 
 void Player::draw(core::World& world) {
-    auto& enemy = world.get_entities()[1];
-
     auto color = raylib::Color(25, 25, 100);
-    if (player_collider.collides_with(*enemy->colliders[0])) {
-        color = RED;
-    }
 
     { // draw hammer handle 
         const float HANDLE_WIDTH = 5.;
