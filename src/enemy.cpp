@@ -112,7 +112,7 @@ void Enemy::draw(core::World& world) {
             p += position;
         }
 
-        DrawTriangleFan(points.data(), points.size(), BLACK);
+        DrawTriangleFan(points.data(), points.size(), is_on_screen() ? BLACK : GREEN);
     }
 
     { // draw eyes
@@ -135,5 +135,5 @@ void Enemy::draw(core::World& world) {
 }
 
 bool Enemy::is_on_screen() {
-    return !body_collider.collide_with_screen().has_value();
+    return body_collider.is_on_screen();
 }

@@ -2,21 +2,24 @@
 #include "Vector2.hpp"
 #include "raylib.h"
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <vector>
 #include <memory>
 #include "core.hpp"
 #include "player.hpp"
+#include "physics.hpp"
 
 // #define DRAW_COLLIDERS
 
 #ifdef DRAW_COLLIDERS
 #include <iterator>
-#include "physics.hpp"
 #endif
 
 using namespace game;
 using namespace core;
+
+const std::chrono::microseconds ONE_SECOND{1};
 
 float randf() {
     return static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
@@ -30,14 +33,26 @@ void World::add_entity(std::shared_ptr<Entity> entity) {
 }
 
 void World::update() {
-    SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
-    // SetTargetFPS(30);
+    if (vsync)
+        SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
+    else 
+        SetTargetFPS(0);
+
+    if (IsKeyPressed(KEY_F3)) 
+        vsync = !vsync;
 
     clock += GetFrameTime();
 
-    for (int idx = 0; idx < entities.size(); idx++) {
-        auto e = entities[idx];
-        e->update(*this);
+    {
+        auto now = std::chrono::steady_clock::now();
+
+        for (int idx = 0; idx < entities.size(); idx++) {
+            auto e = entities[idx];
+            e->update(*this);
+        }
+
+        update_delta = (std::chrono::steady_clock::now() - now) / ONE_SECOND;
+        update_delta /= 1000;
     }
 
     auto camera = raylib::Camera2D();
@@ -46,37 +61,45 @@ void World::update() {
     camera.zoom = std::min(GetScreenWidth() / SCREEN_WIDTH, GetScreenHeight() / SCREEN_HEIGHT);
     camera.rotation = 0.0;
 
-    BeginDrawing();
-        ClearBackground(BLACK);
+    {
+        auto now = std::chrono::steady_clock::now();
 
-        camera.BeginMode();
+        BeginDrawing();
+            ClearBackground(BLACK);
 
-            // background
-            DrawRectangle(
-                -SCREEN_WIDTH / 2.,
-                -SCREEN_HEIGHT / 2.,
-                SCREEN_WIDTH,
-                SCREEN_HEIGHT,
-                WHITE
-            );
+            camera.BeginMode();
 
-            for (auto& e : entities) {
-                e->draw(*this);
+                // background
+                DrawRectangle(
+                        -SCREEN_WIDTH / 2.,
+                        -SCREEN_HEIGHT / 2.,
+                        SCREEN_WIDTH,
+                        SCREEN_HEIGHT,
+                        WHITE
+                        );
+
+                for (auto& e : entities) {
+                    e->draw(*this);
 
 #ifdef DRAW_COLLIDERS
-                for (auto c : e->colliders) {
-                    auto points = c->get_transformed_points();
+                    for (auto c : e->colliders) {
+                        auto points = c->get_transformed_points();
 
-                    points.insert(std::begin(points), e->position + c->offset.Rotate(e->rotation));
-                    points.push_back(points[1]);
+                        points.insert(std::begin(points), e->position + c->offset.Rotate(e->rotation));
+                        points.push_back(points[1]);
 
-                    DrawTriangleFan(points.data(), points.size(), c->debug_color);
-                }
+                        DrawTriangleFan(points.data(), points.size(), c->debug_color);
+                        DrawCircleV(e->position, c->radius, c->debug_color);
+                    }
 #endif
-            }
+                }
 
-        camera.EndMode();
-    EndDrawing();
+            camera.EndMode();
+        EndDrawing();
+
+        draw_delta = (std::chrono::steady_clock::now() - now) / ONE_SECOND;
+        draw_delta /= 1000;
+    }
 }
 
 std::span<std::shared_ptr<Entity>> World::get_entities() {

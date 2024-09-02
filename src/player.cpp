@@ -38,25 +38,21 @@ std::vector<raylib::Vector2> create_player_shape(int points) {
     return result;
 }
 
-std::vector<raylib::Vector2> create_hammer_head_shape() {
+std::vector<raylib::Vector2> create_hammer_head_shape(float scale = 1) {
     const raylib::Vector2 HAMMER_HEAD_HALF_SIZE(50, 30);
 
     return std::vector<raylib::Vector2>({
-        HAMMER_HEAD_HALF_SIZE * raylib::Vector2(1, 1),
-        HAMMER_HEAD_HALF_SIZE * raylib::Vector2(1, -1),
-        HAMMER_HEAD_HALF_SIZE * raylib::Vector2(-1, -1),
-        HAMMER_HEAD_HALF_SIZE * raylib::Vector2(-1, 1),
+        HAMMER_HEAD_HALF_SIZE * raylib::Vector2(1, 1) * scale,
+        HAMMER_HEAD_HALF_SIZE * raylib::Vector2(1, -1) * scale,
+        HAMMER_HEAD_HALF_SIZE * raylib::Vector2(-1, -1) * scale,
+        HAMMER_HEAD_HALF_SIZE * raylib::Vector2(-1, 1) * scale,
     });
 }
 
 Player::Player(core::World& world) : 
     player_collider(this, create_player_shape(PLAYER_SIDES)),
-    hammer_collider(this, create_hammer_head_shape())
+    hammer_collider(this, create_hammer_head_shape(1.55))
 {
-    for (auto& p : hammer_collider.points) {
-        p *= 1.55;
-    }
-
     hammer_collider.offset = raylib::Vector2(0, 125);
 }
 
@@ -159,6 +155,8 @@ void Player::_handle_swing(core::World& world) {
 void Player::update(core::World& world) {
     _move_player();
     _handle_swing(world);
+
+    health = std::min(PLAYER_HEALTH, health + (GetFrameTime() * 0.01f));
     
     // check screen collision
     auto displacement = player_collider.collide_with_screen();
@@ -173,8 +171,12 @@ void Player::update(core::World& world) {
             if (!enemy->is_on_screen()) continue;
 
             if (player_collider.collides_with(enemy->body_collider)) {
-                world.send_notification(core::PLAYER_DIED);
-                return;
+                health -= GetFrameTime();
+                if (health <= 0) {
+                    world.destroy(this);
+                    world.send_notification(core::PLAYER_DIED);
+                    return;
+                }
             }
         }
     }
@@ -229,12 +231,13 @@ void Player::draw(core::World& world) {
             DrawCircleV(point, 4, WHITE);
         }
 
+        auto pupil_radius = Remap(std::max(0.f, health), PLAYER_HEALTH, 0, 1.5, 3);
         for (auto point : eyes) {
             point += raylib::Vector2(0, -1);
             point = point.Rotate(rotation);
             point += position;
 
-            DrawCircleV(point, 1.5, BLACK);
+            DrawCircleV(point, pupil_radius, BLACK);
         }
     }
 

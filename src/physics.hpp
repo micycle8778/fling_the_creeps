@@ -16,6 +16,8 @@ namespace game::physics {
 
         game::core::Entity* parent;
 
+        float radius = 0;
+
         Collider(const Collider&) = delete;
         Collider& operator=(const Collider&) = delete;
 
@@ -24,5 +26,6 @@ namespace game::physics {
             std::optional<raylib::Vector2> collide_with_screen();
             std::optional<raylib::Vector2> collides_with(Collider& other);
             std::vector<raylib::Vector2> get_transformed_points();
+            bool is_on_screen();
     };
 }

@@ -37,6 +37,8 @@ namespace game {
 
                 std::vector<physics::Collider*> colliders;
 
+                int draw_order = 0;
+
                 virtual void update(World& world) = 0;
                 virtual void draw(World& world) = 0;
                 virtual void recieve_notification(World& _world, Notification _notification) {}
@@ -46,8 +48,14 @@ namespace game {
             std::vector<std::shared_ptr<Entity>> entities;
             std::vector<Entity*> to_be_freed;
 
+            bool vsync = true;
+
             public:
                 float clock = 0;
+
+                float update_delta = 0;
+                float draw_delta = 0;
+                
                 std::shared_ptr<player::Player> player;
 
                 void add_entity(std::shared_ptr<Entity> entity);

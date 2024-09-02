@@ -5,6 +5,8 @@
 #include <unordered_map>
 
 namespace game::player {
+    const float PLAYER_HEALTH = 0.3;
+
     enum State {
         READY, SWINGING, RECOVERY
     };
@@ -18,6 +20,8 @@ namespace game::player {
 
         State state = State::READY;
         float state_timer = 0;
+
+        float health = PLAYER_HEALTH;
         
         void _move_player();
         void _handle_swing(core::World& world);

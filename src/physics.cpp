@@ -12,6 +12,13 @@ Collider::Collider(game::core::Entity* parent, std::vector<raylib::Vector2> poin
     this->points = points;
 
     parent->colliders.push_back(this);
+
+    for (auto p : points) {
+        auto new_radius = (p + offset).Length();
+        if (new_radius > radius) {
+            radius = new_radius;
+        }
+    }
 }
 
 std::optional<raylib::Vector2> Collider::collide_with_screen() {
@@ -20,11 +27,7 @@ std::optional<raylib::Vector2> Collider::collide_with_screen() {
     auto half_width = game::SCREEN_WIDTH / 2.;
     auto half_height = game::SCREEN_HEIGHT / 2.;
 
-    for (auto p : points) {
-        p = p.Rotate(parent->rotation);
-        p += parent->position;
-        p += offset;
-
+    for (auto p : get_transformed_points()) {
         result.x += std::max(0.0, -half_width - p.x); // left wall
         result.x -= std::max(0.0, p.x - half_width); // right wall
 
@@ -38,10 +41,15 @@ std::optional<raylib::Vector2> Collider::collide_with_screen() {
 }
 
 std::optional<raylib::Vector2> Collider::collides_with(Collider& other) {
+    // broad circle-to-circle
+    if (!CheckCollisionCircles(
+                parent->position, radius, 
+                other.parent->position, other.radius
+    )) return {};
+
+    // SAT
     auto our_points = get_transformed_points();
     auto other_points = other.get_transformed_points();
-
-    // Do collision check or whatever
 
     raylib::Vector2 displacement = INFINITY;
     for (auto container : {our_points, other_points}) {
@@ -102,4 +110,19 @@ std::vector<raylib::Vector2> Collider::get_transformed_points() {
     }
 
     return result;
+}
+
+bool Collider::is_on_screen() {
+    auto half_width = game::SCREEN_WIDTH / 2.;
+    auto half_height = game::SCREEN_HEIGHT / 2.;
+
+    for (auto p : get_transformed_points()) {
+        if (p.x >= -half_width && p.x <= half_width) {
+            if (p.y >= -half_height && p.y <= half_height) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
