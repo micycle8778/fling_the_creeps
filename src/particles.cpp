@@ -7,12 +7,14 @@ using namespace game::particles;
 Particle::Particle(float lifetime) {
     this->starting_lifetime = lifetime;
     this->lifetime = lifetime;
+
+    draw_order = -10;
 }
 
 void Particle::update(core::World& world) {
     lifetime -= GetFrameTime();
     if (lifetime <= 0) {
-        world.destroy(this);
+        this->destroy();
         return;
     }
 

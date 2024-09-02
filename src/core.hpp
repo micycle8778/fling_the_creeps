@@ -3,6 +3,7 @@
 #include <memory>
 #include <span>
 #include <vector>
+#include <map>
 
 #include "Vector2.hpp"
 
@@ -30,6 +31,8 @@ namespace game {
         class World;
 
         class Entity {
+            bool destroyed = false;
+
             public:
                 raylib::Vector2 position = raylib::Vector2();
                 float rotation = 0;
@@ -42,10 +45,14 @@ namespace game {
                 virtual void update(World& world) = 0;
                 virtual void draw(World& world) = 0;
                 virtual void recieve_notification(World& _world, Notification _notification) {}
+
+                bool is_destroyed();
+                void destroy();
         };
 
         class World {
             std::vector<std::shared_ptr<Entity>> entities;
+            std::map<int, std::vector<std::shared_ptr<Entity>>> draw_map;
             std::vector<Entity*> to_be_freed;
 
             bool vsync = true;
@@ -61,7 +68,6 @@ namespace game {
                 void add_entity(std::shared_ptr<Entity> entity);
                 void update();
                 std::span<std::shared_ptr<Entity>> get_entities();
-                void destroy(Entity* entity);
                 void send_notification(Notification notification);
         };
     }

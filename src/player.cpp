@@ -173,7 +173,7 @@ void Player::update(core::World& world) {
             if (player_collider.collides_with(enemy->body_collider)) {
                 health -= GetFrameTime();
                 if (health <= 0) {
-                    world.destroy(this);
+                    this->destroy();
                     world.send_notification(core::PLAYER_DIED);
                     return;
                 }

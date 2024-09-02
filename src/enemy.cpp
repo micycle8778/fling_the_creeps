@@ -20,7 +20,6 @@ Enemy::Enemy() : body_collider(this, get_enemy_shape()) {}
 
 void create_death_particles(game::core::World& world, raylib::Vector2 position, raylib::Vector2 velocity) {
     auto v_hat = velocity.Normalize();
-    auto v_bar = velocity.Length();
 
     for (int idx = 0; idx < 8; idx++) {
         auto particle = std::make_shared<game::particles::Particle>(1.0);
@@ -87,13 +86,13 @@ void Enemy::update(core::World& world) {
                 if (going_fast && other_going_fast) continue;
                 if (other_going_fast) {
                     create_death_particles(world, position, enemy->velocity);
-                    world.destroy(this);
+                    this->destroy();
                     break;
                 }
 
                 if (going_fast) {
                     create_death_particles(world, enemy->position, velocity);
-                    world.destroy(enemy.get());
+                    enemy.get()->destroy();
                 }
 
             }

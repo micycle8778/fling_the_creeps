@@ -21,15 +21,33 @@ using namespace core;
 
 const std::chrono::microseconds ONE_SECOND{1};
 
+bool destroyed_this_frame = false;
+
 float randf() {
     return static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+}
+
+bool Entity::is_destroyed() {
+    return destroyed;
+}
+
+void Entity::destroy() {
+    destroyed = true;
+    destroyed_this_frame = true;
 }
 
 void World::add_entity(std::shared_ptr<Entity> entity) {
     if (auto ptr = std::dynamic_pointer_cast<player::Player>(entity)) {
         player = ptr;
     }
-    entities.push_back(std::move(entity));
+    
+    entities.push_back(entity);
+
+    if (!draw_map.contains(entity->draw_order)) {
+        draw_map[entity->draw_order] = std::vector<std::shared_ptr<Entity>>();
+    }     
+
+    draw_map[entity->draw_order].push_back(entity);
 }
 
 void World::update() {
@@ -46,9 +64,37 @@ void World::update() {
     {
         auto now = std::chrono::steady_clock::now();
 
+        destroyed_this_frame = false;
+
         for (int idx = 0; idx < entities.size(); idx++) {
             auto e = entities[idx];
             e->update(*this);
+        }
+
+        if (destroyed_this_frame) {
+            for (int idx = entities.size() - 1; idx >= 0; idx--) {
+                auto e = entities[idx];
+                if (e->is_destroyed()) {
+                    auto last_entity = entities.back();
+                    entities.pop_back();
+
+                    if (idx != entities.size())
+                        entities[idx] = last_entity;
+                }
+            }
+
+            for (auto& [key, val] : draw_map) {
+                for (int idx = val.size() - 1; idx >= 0; idx--) {
+                    auto e = val[idx];
+                    if (e->is_destroyed()) {
+                        auto last_entity = val.back();
+                        val.pop_back();
+
+                        if (idx != val.size())
+                            val[idx] = last_entity;
+                    }
+                }
+            }
         }
 
         update_delta = (std::chrono::steady_clock::now() - now) / ONE_SECOND;
@@ -76,24 +122,24 @@ void World::update() {
                         SCREEN_WIDTH,
                         SCREEN_HEIGHT,
                         WHITE
-                        );
+                );
 
-                for (auto& e : entities) {
-                    e->draw(*this);
-
+                for (auto const& [key, val] : draw_map) {
+                    for (auto const& e : val) {
+                        e->draw(*this);
 #ifdef DRAW_COLLIDERS
-                    for (auto c : e->colliders) {
-                        auto points = c->get_transformed_points();
+                        for (auto c : e->colliders) {
+                            auto points = c->get_transformed_points();
 
-                        points.insert(std::begin(points), e->position + c->offset.Rotate(e->rotation));
-                        points.push_back(points[1]);
+                            points.insert(std::begin(points), e->position + c->offset.Rotate(e->rotation));
+                            points.push_back(points[1]);
 
-                        DrawTriangleFan(points.data(), points.size(), c->debug_color);
-                        DrawCircleV(e->position, c->radius, c->debug_color);
-                    }
+                            DrawTriangleFan(points.data(), points.size(), c->debug_color);
+                            DrawCircleV(e->position, c->radius, c->debug_color);
+                        }
 #endif
+                    }
                 }
-
             camera.EndMode();
         EndDrawing();
 
@@ -104,21 +150,6 @@ void World::update() {
 
 std::span<std::shared_ptr<Entity>> World::get_entities() {
     return std::span<std::shared_ptr<Entity>>(entities);
-}
-
-void World::destroy(Entity* entity) {
-    // WARN: this could drop a frame
-    if (entities.back().get() == entity) {
-        entities.pop_back();
-    }
-
-    for (auto& e : entities) {
-        if (e.get() == entity) {
-            e = entities.back();
-            entities.pop_back();
-            return;
-        }
-    }
 }
 
 void World::send_notification(Notification notification) {
