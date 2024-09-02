@@ -101,8 +101,9 @@ const float RECOVERY_TIME = 0.50;
 
 void Player::_handle_hammer_collision(core::World& world) {
     for (auto e : world.get_entities()) {
-        auto enemy = std::dynamic_pointer_cast<enemy::Enemy>(e);
-        if (enemy) {
+        if (auto enemy = std::dynamic_pointer_cast<enemy::Enemy>(e)) {
+            if (!enemy->is_on_screen()) continue;
+
             if (hit_enemies.contains(enemy.get())) {
                 if ((world.clock - hit_enemies[enemy.get()]) < RECOVERY_TIME) {
                     continue;
@@ -129,7 +130,7 @@ void Player::_handle_swing(core::World& world) {
             break;
 
         case SWINGING:
-            rotation += ((2.0 * PI) / SWING_TIME) * GetFrameTime();
+            rotation += ((3.0 * PI) / SWING_TIME) * GetFrameTime();
             state_timer -= GetFrameTime();
 
             _handle_hammer_collision(world);
@@ -141,8 +142,8 @@ void Player::_handle_swing(core::World& world) {
             break;
 
         case RECOVERY:
-            auto rotation_speed = (1.0 * PI) / RECOVERY_TIME;
-            rotation_speed *= state_timer / RECOVERY_TIME;
+            auto rotation_speed = (2.0 * PI) / RECOVERY_TIME;
+            rotation_speed *= Remap(state_timer / RECOVERY_TIME, 1, 0, 1, 0.3);
 
             rotation += rotation_speed * GetFrameTime();
             state_timer -= GetFrameTime();
@@ -169,6 +170,8 @@ void Player::update(core::World& world) {
     // check enemy collision
     for (auto e : world.get_entities()) {
         if (auto enemy = std::dynamic_pointer_cast<enemy::Enemy>(e)) {
+            if (!enemy->is_on_screen()) continue;
+
             if (player_collider.collides_with(enemy->body_collider)) {
                 world.send_notification(core::PLAYER_DIED);
                 return;
@@ -231,7 +234,7 @@ void Player::draw(core::World& world) {
             point = point.Rotate(rotation);
             point += position;
 
-            DrawCircleV(point, 2, BLACK);
+            DrawCircleV(point, 1.5, BLACK);
         }
     }
 

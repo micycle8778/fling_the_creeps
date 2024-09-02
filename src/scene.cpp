@@ -16,8 +16,8 @@ void Scene::update(core::World& world) {
         spawn_timer = SPAWN_TIMER;
 
         auto enemy = std::make_shared<enemy::Enemy>();
-        float r = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-        enemy->position = raylib::Vector2(1500, 0).Rotate(r * 2 * PI);
+        auto angle = randf() * 2 * PI;
+        enemy->position = raylib::Vector2(1500, 0).Rotate(angle);
 
         world.add_entity(enemy);
     }

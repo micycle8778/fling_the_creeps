@@ -18,6 +18,10 @@
 using namespace game;
 using namespace core;
 
+float randf() {
+    return static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+}
+
 void World::add_entity(std::shared_ptr<Entity> entity) {
     if (auto ptr = std::dynamic_pointer_cast<player::Player>(entity)) {
         player = ptr;
@@ -27,6 +31,7 @@ void World::add_entity(std::shared_ptr<Entity> entity) {
 
 void World::update() {
     SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
+    // SetTargetFPS(30);
 
     clock += GetFrameTime();
 

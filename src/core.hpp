@@ -6,6 +6,8 @@
 
 #include "Vector2.hpp"
 
+float randf(); 
+
 namespace game::player {
     class Player;
 }
