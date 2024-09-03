@@ -111,7 +111,7 @@ void Enemy::draw(core::World& world) {
             p += position;
         }
 
-        DrawTriangleFan(points.data(), points.size(), is_on_screen() ? BLACK : GREEN);
+        DrawTriangleFan(points.data(), points.size(), BLACK);
     }
 
     { // draw eyes

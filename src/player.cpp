@@ -166,6 +166,8 @@ void Player::update(core::World& world) {
     }
 
     // check enemy collision
+    if (state == SWINGING) return;
+
     for (auto e : world.get_entities()) {
         if (auto enemy = std::dynamic_pointer_cast<enemy::Enemy>(e)) {
             if (!enemy->is_on_screen()) continue;
