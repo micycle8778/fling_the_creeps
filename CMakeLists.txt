@@ -41,8 +41,9 @@ add_executable(${PROJECT_NAME}
     src/player.cpp
     src/physics.cpp
     src/enemy.cpp
-    src/scene.cpp
+    src/director.cpp
     src/particles.cpp
+    src/gui.cpp
 )
 
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)

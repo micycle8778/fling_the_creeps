@@ -8,12 +8,13 @@
 #include <memory>
 #include "core.hpp"
 #include "player.hpp"
-#include "physics.hpp"
+#include "director.hpp"
 
 // #define DRAW_COLLIDERS
 
 #ifdef DRAW_COLLIDERS
 #include <iterator>
+#include "physics.hpp"
 #endif
 
 using namespace game;
@@ -37,9 +38,14 @@ void Entity::destroy() {
 }
 
 void World::add_entity(std::shared_ptr<Entity> entity) {
-    if (auto ptr = std::dynamic_pointer_cast<player::Player>(entity)) {
-        player = ptr;
+    if (auto player = std::dynamic_pointer_cast<player::Player>(entity)) {
+        this->player = player;
     }
+
+    if (auto director = std::dynamic_pointer_cast<director::Director>(entity)) {
+        this->director = director;
+    }
+
     
     entities.push_back(entity);
 
@@ -56,7 +62,7 @@ void World::update() {
     else 
         SetTargetFPS(0);
 
-    if (IsKeyPressed(KEY_F3)) 
+    if (IsKeyPressed(KEY_F9)) 
         vsync = !vsync;
 
     clock += GetFrameTime();
@@ -68,7 +74,9 @@ void World::update() {
 
         for (int idx = 0; idx < entities.size(); idx++) {
             auto e = entities[idx];
-            e->update(*this);
+            if (e->is_destroyed()) continue;
+
+            e->update();
         }
 
         if (destroyed_this_frame) {
@@ -126,7 +134,7 @@ void World::update() {
 
                 for (auto const& [key, val] : draw_map) {
                     for (auto const& e : val) {
-                        e->draw(*this);
+                        e->draw();
 #ifdef DRAW_COLLIDERS
                         for (auto c : e->colliders) {
                             auto points = c->get_transformed_points();
@@ -150,10 +158,4 @@ void World::update() {
 
 std::span<std::shared_ptr<Entity>> World::get_entities() {
     return std::span<std::shared_ptr<Entity>>(entities);
-}
-
-void World::send_notification(Notification notification) {
-    for (auto e : entities) {
-        e->recieve_notification(*this, notification);
-    }
 }

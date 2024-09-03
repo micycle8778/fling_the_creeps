@@ -13,9 +13,9 @@ namespace game::enemy {
             raylib::Vector2 velocity;
             physics::Collider body_collider;
 
-            Enemy();
-            void update(core::World& world);
-            void draw(core::World& world);
+            Enemy(core::World& world);
+            void update();
+            void draw();
             bool is_on_screen();
     };
 }

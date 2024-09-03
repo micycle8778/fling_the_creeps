@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Vector2.hpp"
 #include "core.hpp"
 
@@ -23,8 +25,8 @@ namespace game::particles {
 
             Shape shape = CIRCLE;
 
-            Particle(float lifetime);
-            void update(core::World& world);
-            void draw(core::World& world);
+            Particle(core::World& world, float lifetime);
+            void update();
+            void draw();
     };
 }

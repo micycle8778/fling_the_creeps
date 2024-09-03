@@ -1,3 +1,5 @@
+#pragma once
+
 #include "core.hpp"
 #include "physics.hpp"
 #include "enemy.hpp"
@@ -29,8 +31,8 @@ namespace game::player {
         
         public:
             Player(core::World& world);
-            void update(core::World& world);
-            void draw(core::World& world);
+            void update();
+            void draw();
     };
 }
 

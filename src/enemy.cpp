@@ -1,4 +1,5 @@
 #include "enemy.hpp"
+#include "director.hpp"
 #include "Vector2.hpp"
 #include "player.hpp"
 #include "raylib.h"
@@ -16,20 +17,20 @@ std::vector<raylib::Vector2> get_enemy_shape() {
     });
 }
 
-Enemy::Enemy() : body_collider(this, get_enemy_shape()) {}
+Enemy::Enemy(core::World& world) : core::Entity(world), body_collider(this, get_enemy_shape()) {}
 
 void create_death_particles(game::core::World& world, raylib::Vector2 position, raylib::Vector2 velocity) {
     auto v_hat = velocity.Normalize();
 
-    for (int idx = 0; idx < 8; idx++) {
-        auto particle = std::make_shared<game::particles::Particle>(1.0);
+    for (int idx = 0; idx < 6; idx++) {
+        auto particle = std::make_shared<game::particles::Particle>(world, 1.0);
 
-        particle->linear_velocity = v_hat.Rotate(randf() * PI / 3) * 700;
-        particle->angular_velocity = Remap(randf(), 0, 1, 4 * PI, 6 * PI);
+        particle->linear_velocity = v_hat.Rotate(randf() * PI / 10) * 1000 * Remap(randf(), 0, 1, 0.7, 1);
+        particle->angular_velocity = Remap(randf(), 0, 1, 07 * PI, 10 * PI);
         particle->color = Fade(BLACK, 0.5);
 
         particle->linear_drag = 0.5;
-        particle->angular_drag = 0.5;
+        particle->angular_drag = 03;
 
         particle->position = position + (raylib::Vector2(1.).Rotate(randf() * 2 * PI) * randf() * 20.);
 
@@ -40,7 +41,7 @@ void create_death_particles(game::core::World& world, raylib::Vector2 position, 
     }
 }
 
-void Enemy::update(core::World& world) {
+void Enemy::update() {
     const float DESIRED_SPEED = 300;
     float lerp_speed = 0.01;
     if (velocity.Length() < DESIRED_SPEED) {
@@ -61,7 +62,7 @@ void Enemy::update(core::World& world) {
     if (going_fast && particle_timer <= 0) {
         particle_timer = PARTICLE_TIMER;
 
-        auto particle = std::make_shared<particles::Particle>(0.35);
+        auto particle = std::make_shared<particles::Particle>(world, 0.35);
         particle->position = position;
         particle->color = Fade(BLACK, 0.5);
         particle->radius = 6;
@@ -86,12 +87,14 @@ void Enemy::update(core::World& world) {
                 if (going_fast && other_going_fast) continue;
                 if (other_going_fast) {
                     create_death_particles(world, position, enemy->velocity);
+                    world.director->enemy_killed();
                     this->destroy();
                     break;
                 }
 
                 if (going_fast) {
                     create_death_particles(world, enemy->position, velocity);
+                    world.director->enemy_killed();
                     enemy.get()->destroy();
                 }
 
@@ -100,7 +103,9 @@ void Enemy::update(core::World& world) {
     }
 }
 
-void Enemy::draw(core::World& world) {
+void Enemy::draw() {
+    if (!body_collider.is_on_screen()) return;
+
     { // draw body
         auto points = get_enemy_shape();
         points.insert(std::begin(points), raylib::Vector2());

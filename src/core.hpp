@@ -9,6 +9,10 @@
 
 float randf(); 
 
+namespace game::director {
+    class Director;
+}
+
 namespace game::player {
     class Player;
 }
@@ -17,21 +21,23 @@ namespace game::physics {
     struct Collider;
 }
 
+class Foo {
+    public:
+        Foo(int x);
+};
+
 namespace game {
     const float SCREEN_WIDTH = 1280;
     const float SCREEN_HEIGHT = 720;
 
     namespace core {
-        enum Notification {
-            ENEMY_FLUNG,
-            PLAYER_DIED,
-
-        };
-
         class World;
 
         class Entity {
             bool destroyed = false;
+
+            protected:
+                core::World& world;
 
             public:
                 raylib::Vector2 position = raylib::Vector2();
@@ -42,9 +48,10 @@ namespace game {
 
                 int draw_order = 0;
 
-                virtual void update(World& world) = 0;
-                virtual void draw(World& world) = 0;
-                virtual void recieve_notification(World& _world, Notification _notification) {}
+                Entity(core::World& world) : world(world) {}
+
+                virtual void update() = 0;
+                virtual void draw() = 0;
 
                 bool is_destroyed();
                 void destroy();
@@ -64,11 +71,11 @@ namespace game {
                 float draw_delta = 0;
                 
                 std::shared_ptr<player::Player> player;
+                std::shared_ptr<director::Director> director;
 
                 void add_entity(std::shared_ptr<Entity> entity);
                 void update();
                 std::span<std::shared_ptr<Entity>> get_entities();
-                void send_notification(Notification notification);
         };
     }
 }

@@ -1,19 +1,21 @@
-#include "scene.hpp"
+#include "gui.hpp"
+#include "director.hpp"
 #include "Functions.hpp"
-#include "core.hpp"
-#include "enemy.hpp"
-#include "raylib.h"
-#include <cstdlib>
 #include <format>
-#include <memory>
 
-using namespace game::scene;
+using namespace game::gui;
 
-FPSLabel::FPSLabel() {
+FPSLabel::FPSLabel(core::World& world) : core::Entity(world) {
     draw_order = 10;
 }
 
-void FPSLabel::draw(core::World& world) {
+void FPSLabel::update() {
+    if (IsKeyPressed(KEY_F3))
+        visible = !visible;
+}
+
+void FPSLabel::draw() {
+    if (!visible) return;
     if (world.draw_delta == 0 || world.update_delta == 0) return;
 
     raylib::DrawText(
@@ -41,24 +43,20 @@ void FPSLabel::draw(core::World& world) {
     );
 }
 
-void spawn_enemy(game::core::World& world) {
-        auto enemy = std::make_shared<game::enemy::Enemy>();
-        auto angle = randf() * 2 * PI;
-        enemy->position = raylib::Vector2(1500, 0).Rotate(angle);
-
-        world.add_entity(enemy);
+ScoreLabel::ScoreLabel(core::World& world) : core::Entity(world) {
+    draw_order = 10;
 }
 
-Scene::Scene(core::World& world) {
-    // create player
-    world.add_entity(std::make_shared<FPSLabel>());
-}
+void ScoreLabel::update() {}
 
-void Scene::update(core::World& world) {
-    spawn_timer -= GetFrameTime();
+void ScoreLabel::draw() {
+    if (!visible) return;
 
-    if (spawn_timer <= 0) {
-        spawn_timer = SPAWN_TIMER;
-        spawn_enemy(world);
-    }
+    raylib::DrawText(
+            std::format("SCORE: {0}", world.director->get_score()).c_str(),
+            -SCREEN_WIDTH / 2 + 10,
+            -SCREEN_HEIGHT / 2 + 10,
+            45,
+            RED
+    );
 }

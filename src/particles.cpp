@@ -4,14 +4,14 @@
 
 using namespace game::particles;
 
-Particle::Particle(float lifetime) {
+Particle::Particle(core::World& world, float lifetime) : core::Entity(world) {
     this->starting_lifetime = lifetime;
     this->lifetime = lifetime;
 
     draw_order = -10;
 }
 
-void Particle::update(core::World& world) {
+void Particle::update() {
     lifetime -= GetFrameTime();
     if (lifetime <= 0) {
         this->destroy();
@@ -25,7 +25,7 @@ void Particle::update(core::World& world) {
     angular_velocity -= angular_velocity * angular_drag * GetFrameTime();
 }
 
-void Particle::draw(core::World& _world) {
+void Particle::draw() {
     auto draw_color = color;
     draw_color.a *= lifetime / starting_lifetime;
 

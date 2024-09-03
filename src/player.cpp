@@ -4,6 +4,7 @@
 #include "core.hpp"
 #include "physics.hpp"
 #include "enemy.hpp"
+#include "director.hpp"
 
 #include "raylib.h"
 #include <algorithm>
@@ -50,6 +51,7 @@ std::vector<raylib::Vector2> create_hammer_head_shape(float scale = 1) {
 }
 
 Player::Player(core::World& world) : 
+    core::Entity(world),
     player_collider(this, create_player_shape(PLAYER_SIDES)),
     hammer_collider(this, create_hammer_head_shape(1.55))
 {
@@ -109,7 +111,7 @@ void Player::_handle_hammer_collision(core::World& world) {
             if (hammer_collider.collides_with(enemy->body_collider)) {
                 hit_enemies[enemy.get()] = world.clock;
                 enemy->velocity += raylib::Vector2(-4000, 0).Rotate(rotation);
-                world.send_notification(core::ENEMY_FLUNG);
+                world.director->enemy_flung();
             }
         }
     }
@@ -152,7 +154,7 @@ void Player::_handle_swing(core::World& world) {
     }
 }
 
-void Player::update(core::World& world) {
+void Player::update() {
     _move_player();
     _handle_swing(world);
 
@@ -176,7 +178,7 @@ void Player::update(core::World& world) {
                 health -= GetFrameTime();
                 if (health <= 0) {
                     this->destroy();
-                    world.send_notification(core::PLAYER_DIED);
+                    world.director->player_died();
                     return;
                 }
             }
@@ -184,7 +186,7 @@ void Player::update(core::World& world) {
     }
 }
 
-void Player::draw(core::World& world) {
+void Player::draw() {
     auto color = raylib::Color(25, 25, 100);
 
     { // draw hammer handle 
