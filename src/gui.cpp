@@ -1,4 +1,5 @@
 #include "gui.hpp"
+#include "core.hpp"
 #include "director.hpp"
 #include "Functions.hpp"
 #include <format>
@@ -7,6 +8,7 @@ using namespace game::gui;
 
 FPSLabel::FPSLabel(core::World& world) : core::Entity(world) {
     draw_order = 10;
+    process_mode = core::ALWAYS;
 }
 
 void FPSLabel::update() {
@@ -16,7 +18,6 @@ void FPSLabel::update() {
 
 void FPSLabel::draw() {
     if (!visible) return;
-    if (world.draw_delta == 0 || world.update_delta == 0) return;
 
     raylib::DrawText(
             std::format("FPS: {0}", std::round(1 / GetFrameTime())),
@@ -27,7 +28,7 @@ void FPSLabel::draw() {
     );
 
     raylib::DrawText(
-            std::format("UPDATE_TIME: {0}", world.update_delta),
+            std::format("UPDATE_TIME: {0:.3f}", world.update_delta),
             -SCREEN_WIDTH / 2 + 10,
             SCREEN_HEIGHT / 2 - 70,
             30,
@@ -35,7 +36,7 @@ void FPSLabel::draw() {
     );
 
     raylib::DrawText(
-            std::format("DRAW_TIME: {0}", world.draw_delta),
+            std::format("DRAW_TIME: {0:.3f}", world.draw_delta),
             -SCREEN_WIDTH / 2 + 10,
             SCREEN_HEIGHT / 2 - 35,
             30,
@@ -45,6 +46,7 @@ void FPSLabel::draw() {
 
 ScoreLabel::ScoreLabel(core::World& world) : core::Entity(world) {
     draw_order = 10;
+    process_mode = core::ALWAYS;
 }
 
 void ScoreLabel::update() {}
@@ -60,3 +62,5 @@ void ScoreLabel::draw() {
             RED
     );
 }
+
+

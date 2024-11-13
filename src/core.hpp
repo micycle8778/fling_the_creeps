@@ -31,6 +31,13 @@ namespace game {
     const float SCREEN_HEIGHT = 720;
 
     namespace core {
+        enum ProcessMode {
+            NEVER = 0,
+            WHEN_UNPAUSED = 0b01,
+            WHEN_PAUSED = 0b10,
+            ALWAYS = 0b11,
+        };
+
         class World;
 
         class Entity {
@@ -38,6 +45,8 @@ namespace game {
 
             protected:
                 core::World& world;
+                ProcessMode process_mode = WHEN_UNPAUSED;
+                ProcessMode draw_mode = ALWAYS;
 
             public:
                 raylib::Vector2 position = raylib::Vector2();
@@ -55,6 +64,8 @@ namespace game {
 
                 bool is_destroyed();
                 void destroy();
+
+                ProcessMode get_process_mode();
         };
 
         class World {
@@ -63,6 +74,8 @@ namespace game {
             std::vector<Entity*> to_be_freed;
 
             bool vsync = true;
+
+            bool paused = false;
 
             public:
                 float clock = 0;

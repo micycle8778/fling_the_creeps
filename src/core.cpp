@@ -20,7 +20,7 @@
 using namespace game;
 using namespace core;
 
-const std::chrono::microseconds ONE_SECOND{1};
+const std::chrono::microseconds ONE_MICROSECOND{1};
 
 bool destroyed_this_frame = false;
 
@@ -35,6 +35,10 @@ bool Entity::is_destroyed() {
 void Entity::destroy() {
     destroyed = true;
     destroyed_this_frame = true;
+}
+
+ProcessMode Entity::get_process_mode() {
+    return process_mode;
 }
 
 void World::add_entity(std::shared_ptr<Entity> entity) {
@@ -65,6 +69,9 @@ void World::update() {
     if (IsKeyPressed(KEY_F9)) 
         vsync = !vsync;
 
+    if (IsKeyPressed(KEY_ESCAPE)) 
+        paused = !paused;
+
     clock += GetFrameTime();
 
     {
@@ -75,6 +82,7 @@ void World::update() {
         for (int idx = 0; idx < entities.size(); idx++) {
             auto e = entities[idx];
             if (e->is_destroyed()) continue;
+            if ((e->get_process_mode() & (paused ? WHEN_PAUSED : WHEN_UNPAUSED)) == 0) continue;
 
             e->update();
         }
@@ -105,7 +113,7 @@ void World::update() {
             }
         }
 
-        update_delta = (std::chrono::steady_clock::now() - now) / ONE_SECOND;
+        update_delta = (std::chrono::steady_clock::now() - now) / ONE_MICROSECOND;
         update_delta /= 1000;
     }
 
@@ -151,7 +159,7 @@ void World::update() {
             camera.EndMode();
         EndDrawing();
 
-        draw_delta = (std::chrono::steady_clock::now() - now) / ONE_SECOND;
+        draw_delta = (std::chrono::steady_clock::now() - now) / ONE_MICROSECOND;
         draw_delta /= 1000;
     }
 }
